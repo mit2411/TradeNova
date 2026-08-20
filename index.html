@@ -4501,12 +4501,13 @@ function initLanguage(){
 ========================================================= */
 
 const FIREBASE_CONFIG = {
-    apiKey: "PASTE_YOUR_FIREBASE_API_KEY",
-    authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-    projectId: "PASTE_YOUR_PROJECT_ID",
-    storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-    messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
-    appId: "PASTE_YOUR_FIREBASE_APP_ID"
+    apiKey: "AIzaSyD4KvQkRF6Tv7EKMX4Urnh9NP_FIZ_I_Jc",
+    authDomain: "tradenova-1b045.firebaseapp.com",
+    projectId: "tradenova-1b045",
+    storageBucket: "tradenova-1b045.firebasestorage.app",
+    messagingSenderId: "285103561225",
+    appId: "1:285103561225:web:428e83860b0b2d7442f6d8",
+    measurementId: "G-Q7VE24YCMF"
 };
 
 let firebaseReady=false;
@@ -8562,6 +8563,33 @@ window.addEventListener("DOMContentLoaded",()=>{
     setAuthMode("login");
 });
 
+</script>
+
+<!-- =========================================================
+   YOUR FIREBASE MODULE SCRIPT (ADDED AS REQUESTED)
+========================================================= -->
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4KvQkRF6Tv7EKMX4Urnh9NP_FIZ_I_Jc",
+    authDomain: "tradenova-1b045.firebaseapp.com",
+    projectId: "tradenova-1b045",
+    storageBucket: "tradenova-1b045.firebasestorage.app",
+    messagingSenderId: "285103561225",
+    appId: "1:285103561225:web:428e83860b0b2d7442f6d8",
+    measurementId: "G-Q7VE24YCMF"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 </script>
 
 </body>
