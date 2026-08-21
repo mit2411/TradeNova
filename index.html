@@ -4048,9 +4048,11 @@ TOAST
 
 
 <!-- Firebase Auth: works when FIREBASE_CONFIG below is filled with your own project config -->
-<!-- We removed the compat SDK script tags and use modular SDK via module script -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <script>
+
 /* =========================================================
    WHOLE WEBSITE LANGUAGE BRIDGE
    The custom language dropdown controls the complete page.
@@ -4500,263 +4502,4073 @@ function initLanguage(){
 
 
 /* =========================================================
-   AUTHENTICATION – MODULAR SDK WRAPPER (no compat SDK)
-   All Firebase functions are now exposed via the module script.
-   The global functions below call the modular functions.
+   AUTHENTICATION
+   Replace the placeholder config with Firebase Web App config.
 ========================================================= */
 
-let authMode = "login";
-
-// These functions will be overridden by the module script's wrappers
-// but we keep them as placeholders.
-function emailAuth(){}
-function socialAuth(provider){}
-function resetPassword(){}
-function logout(){}
-function unlockApp(){}
-function lockApp(){}
-function updateUserUI(user){}
-function showAuthError(msg){}
-function clearAuthError(){}
-function firebaseFriendlyError(err){}
-function setAuthMode(mode){
-    authMode = mode;
-    document.getElementById("loginTab")?.classList.toggle("active", mode === "login");
-    document.getElementById("signupTab")?.classList.toggle("active", mode === "signup");
-    document.getElementById("authTitle").textContent = mode === "login" ? t("Welcome back") : t("Create account");
-    document.getElementById("emailAuthBtn").textContent = mode === "login" ? t("Sign in with email") : t("Create account");
-    clearAuthError();
-}
-
-// Actual implementations will be assigned by module script
-
-// We'll also keep the helper functions for display
-function showAuthError(msg) {
-    const el = document.getElementById("authError");
-    if (!el) return;
-    el.textContent = msg;
-    el.classList.add("show");
-}
-function clearAuthError() {
-    document.getElementById("authError")?.classList.remove("show");
-}
-function firebaseFriendlyError(err) {
-    const code = err?.code || "";
-    const map = {
-        "auth/invalid-credential": "Email or password is incorrect.",
-        "auth/user-not-found": "No account exists for this email.",
-        "auth/wrong-password": "Email or password is incorrect.",
-        "auth/email-already-in-use": "This email already has an account.",
-        "auth/weak-password": "Password must be at least 6 characters.",
-        "auth/popup-closed-by-user": "The sign-in popup was closed.",
-        "auth/account-exists-with-different-credential": "This email already uses another login provider."
-    };
-    return map[code] || err?.message || "Authentication failed.";
-}
-
-// Global functions that will be called from HTML onclick
-window.emailAuth = async function() {
-    clearAuthError();
-    const email = document.getElementById("authEmail").value.trim();
-    const password = document.getElementById("authPassword").value;
-    if (!email || !password) {
-        showAuthError("Enter both email and password.");
-        return;
-    }
-    try {
-        if (authMode === "signup") {
-            await window.__firebaseAuth.createUserWithEmailAndPassword(email, password);
-            toast("Account created.");
-        } else {
-            await window.__firebaseAuth.signInWithEmailAndPassword(email, password);
-        }
-    } catch (err) {
-        showAuthError(firebaseFriendlyError(err));
-    }
-};
-
-window.socialAuth = async function(providerName) {
-    clearAuthError();
-    try {
-        let provider;
-        if (providerName === "google") {
-            provider = new window.__firebaseAuth.GoogleAuthProvider();
-        } else {
-            // Facebook provider - if not imported, we can't use it. But we'll fallback.
-            provider = new window.__firebaseAuth.FacebookAuthProvider();
-        }
-        await window.__firebaseAuth.signInWithPopup(provider);
-    } catch (err) {
-        showAuthError(firebaseFriendlyError(err));
-    }
-};
-
-window.resetPassword = async function() {
-    clearAuthError();
-    const email = document.getElementById("authEmail").value.trim();
-    if (!email) {
-        showAuthError("Enter your email first.");
-        return;
-    }
-    try {
-        await window.__firebaseAuth.sendPasswordResetEmail(email);
-        alert("Password reset email sent. Check your inbox.");
-    } catch (err) {
-        showAuthError(firebaseFriendlyError(err));
-    }
-};
-
-window.logout = async function() {
-    try {
-        await window.__firebaseAuth.signOut();
-    } catch(e) {}
-    localStorage.removeItem("estatepro_user");
-    lockApp();
-};
-
-window.unlockApp = function() {
-    document.getElementById("authGate")?.classList.add("hidden");
-    // updateUserUI is called from module script
-};
-
-window.lockApp = function() {
-    document.getElementById("authGate")?.classList.remove("hidden");
-};
-
-window.updateUserUI = function(user) {
-    if (!user) return;
-    const name = user.displayName || user.email?.split("@")[0] || "Broker User";
-    const profileName = document.querySelector(".sidebar-profile .profile-info b");
-    const profileEmail = document.querySelector(".sidebar-profile .profile-info span");
-    const avatar = document.querySelector(".sidebar-profile .avatar");
-    if (profileName) profileName.textContent = name;
-    if (profileEmail) profileEmail.textContent = user.email || "Authenticated user";
-    if (avatar) avatar.textContent = initials(name);
-    const userName = document.getElementById("topUserName");
-    if (userName) userName.textContent = name;
-};
-
-// These functions are called from HTML, but we need to ensure they exist.
-window.toggleUserMenu = function() {
-    document.getElementById("userDropdown")?.classList.toggle("show");
-};
-
-// =========================================================
-// DATABASE / JSON (unchanged)
-// =========================================================
-
-const DEFAULT_PROPERTIES = [
-// ... (properties as before, omitted for brevity but they exist in the full code)
-];
-
-// We'll keep all the data and functions exactly as before.
-// Only the authentication part changed.
-
-// The rest of the code (properties, leads, clients, etc.) remains identical.
-// Since this is a large file, we'll assume the original data functions are here.
-// In the final answer, the full code is provided.
-
-// =========================================================
-// RENDER ALL (existing)
-// =========================================================
-
-function renderAll() {
-    renderDashboard();
-    renderPortal();
-    renderProperties();
-    renderLeads();
-    renderClients();
-    renderAppointments();
-    renderDeals();
-    renderAgents();
-    renderTasks();
-    renderFavorites();
-    renderCompare();
-    renderReports();
-}
-
-// ... (existing functions like formatPrice, statusBadge, etc.)
-// Note: we must ensure all these functions are defined as in the original.
-// Since we are providing the final code, it's included.
-
-// =========================================================
-// INITIALIZE (modified)
-// =========================================================
-
-loadTheme();
-loadSettings();
-renderAll();
-calculateEMI();
-calculateCommission();
-
-window.addEventListener("DOMContentLoaded", function() {
-    initLanguage();
-    // initAuthentication() is removed; handled by module script
-    setAuthMode("login");
-});
-
-</script>
-
-<!-- =========================================================
-   MODULAR FIREBASE SCRIPT – handles auth and exposes compat-like API
-   This replaces the old compat SDK entirely.
-========================================================= -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
-
-  const firebaseConfig = {
+/* ✅ FIX: Real Firebase Config added */
+const FIREBASE_CONFIG = {
     apiKey: "AIzaSyD4KvQkRF6Tv7EKMX4Urnh9NP_FIZ_I_Jc",
     authDomain: "tradenova-1b045.firebaseapp.com",
     projectId: "tradenova-1b045",
     storageBucket: "tradenova-1b045.firebasestorage.app",
     messagingSenderId: "285103561225",
-    appId: "1:285103561225:web:428e83860b0b2d7442f6d8",
-    measurementId: "G-Q7VE24YCMF"
-  };
+    appId: "1:285103561225:web:428e83860b0b2d7442f6d8"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const analytics = getAnalytics(app);
+let firebaseReady=false;
+let authMode="login";
+let currentUser=null;
 
-  // Expose a compat-like object to the global scope
-  const authWrapper = {
-    createUserWithEmailAndPassword: (email, password) => createUserWithEmailAndPassword(auth, email, password),
-    signInWithEmailAndPassword: (email, password) => signInWithEmailAndPassword(auth, email, password),
-    signInWithPopup: (provider) => signInWithPopup(auth, provider),
-    sendPasswordResetEmail: (email) => sendPasswordResetEmail(auth, email),
-    signOut: () => signOut(auth),
-    onAuthStateChanged: (callback) => onAuthStateChanged(auth, callback),
-    GoogleAuthProvider: GoogleAuthProvider,
-    // FacebookAuthProvider: FacebookAuthProvider // uncomment if you import it
-  };
-  window.__firebaseAuth = authWrapper;
+function firebaseConfigIsReady(){
+    return Object.values(FIREBASE_CONFIG).every(v=>v && !String(v).startsWith("PASTE_YOUR"));
+}
 
-  // Also provide a dummy firebase object for the old code if needed
-  window.firebase = {
-    auth: () => authWrapper,
-    apps: [app],
-    initializeApp: () => app,
-  };
+function initAuthentication(){
+    const note=document.getElementById("firebaseNote");
 
-  // Set up auth state listener
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      localStorage.setItem('estatepro_user', JSON.stringify({
-        uid: user.uid,
-        name: user.displayName || user.email || "Broker User",
-        email: user.email || "",
-        photo: user.photoURL || ""
-      }));
-      if (typeof window.unlockApp === 'function') window.unlockApp();
-      if (typeof window.updateUserUI === 'function') window.updateUserUI(user);
-    } else {
-      if (typeof window.lockApp === 'function') window.lockApp();
+    if(!firebaseConfigIsReady()){
+        if(note){
+            note.innerHTML="<b>Firebase is not configured.</b> Fill <b>FIREBASE_CONFIG</b> in this HTML. The login screen is intentionally locked until real authentication is configured.";
+        }
+        return;
     }
-  });
 
-  // Also forward the showAuthError/clearAuthError functions? Not needed.
+    try{
+        if(!firebase.apps.length){
+            firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        firebaseReady=true;
+
+        if(note){
+            note.classList.add("firebase-status","ok");
+            note.innerHTML="<b>Firebase connected.</b> Email, Google and Facebook buttons are ready if their providers are enabled in Firebase Console.";
+        }
+
+        firebase.auth().onAuthStateChanged(user=>{
+            currentUser=user||null;
+            if(user){
+                localStorage.setItem("estatepro_user",JSON.stringify({
+                    uid:user.uid,name:user.displayName||user.email||"Broker User",
+                    email:user.email||"",photo:user.photoURL||""
+                }));
+                unlockApp();
+                updateUserUI(user);
+            }else{
+                lockApp();
+            }
+        });
+    }catch(err){
+        showAuthError(err.message||"Firebase initialization failed.");
+    }
+}
+
+function setAuthMode(mode){
+    authMode=mode;
+    document.getElementById("loginTab")?.classList.toggle("active",mode==="login");
+    document.getElementById("signupTab")?.classList.toggle("active",mode==="signup");
+    document.getElementById("authTitle").textContent=mode==="login"?t("Welcome back"):t("Create account");
+    document.getElementById("emailAuthBtn").textContent=mode==="login"?t("Sign in with email"):t("Create account");
+    clearAuthError();
+}
+
+async function emailAuth(){
+    clearAuthError();
+
+    if(!firebaseReady){
+        showAuthError("Firebase is not configured. Add your Firebase Web App config first.");
+        return;
+    }
+
+    const email=document.getElementById("authEmail").value.trim();
+    const password=document.getElementById("authPassword").value;
+
+    if(!email||!password){
+        showAuthError("Enter both email and password.");
+        return;
+    }
+
+    try{
+        if(authMode==="signup"){
+            await firebase.auth().createUserWithEmailAndPassword(email,password);
+            toast("Account created.");
+        }else{
+            await firebase.auth().signInWithEmailAndPassword(email,password);
+        }
+    }catch(err){
+        showAuthError(firebaseFriendlyError(err));
+    }
+}
+
+async function socialAuth(providerName){
+    clearAuthError();
+
+    if(!firebaseReady){
+        showAuthError("Firebase is not configured. Add FIREBASE_CONFIG first.");
+        return;
+    }
+
+    try{
+        let provider;
+        if(providerName==="google"){
+            provider=new firebase.auth.GoogleAuthProvider();
+        }else{
+            provider=new firebase.auth.FacebookAuthProvider();
+        }
+        await firebase.auth().signInWithPopup(provider);
+    }catch(err){
+        showAuthError(firebaseFriendlyError(err));
+    }
+}
+
+async function resetPassword(){
+    clearAuthError();
+
+    if(!firebaseReady){
+        showAuthError("Firebase is not configured.");
+        return;
+    }
+
+    const email=document.getElementById("authEmail").value.trim();
+    if(!email){
+        showAuthError("Enter your email first.");
+        return;
+    }
+
+    try{
+        await firebase.auth().sendPasswordResetEmail(email);
+        alert("Password reset email sent. Check your inbox.");
+    }catch(err){
+        showAuthError(firebaseFriendlyError(err));
+    }
+}
+
+function firebaseFriendlyError(err){
+    const code=err?.code||"";
+    const map={
+        "auth/invalid-credential":"Email or password is incorrect.",
+        "auth/user-not-found":"No account exists for this email.",
+        "auth/wrong-password":"Email or password is incorrect.",
+        "auth/email-already-in-use":"This email already has an account.",
+        "auth/weak-password":"Password must be at least 6 characters.",
+        "auth/popup-closed-by-user":"The sign-in popup was closed.",
+        "auth/account-exists-with-different-credential":"This email already uses another login provider."
+    };
+    return map[code]||err?.message||"Authentication failed.";
+}
+
+function showAuthError(message){
+    const el=document.getElementById("authError");
+    if(!el)return;
+    el.textContent=message;
+    el.classList.add("show");
+}
+
+function clearAuthError(){
+    document.getElementById("authError")?.classList.remove("show");
+}
+
+function unlockApp(){
+    document.getElementById("authGate")?.classList.add("hidden");
+    updateUserUI(currentUser);
+}
+
+function lockApp(){
+    document.getElementById("authGate")?.classList.remove("hidden");
+}
+
+function updateUserUI(user){
+    if(!user)return;
+    const name=user.displayName||user.email?.split("@")[0]||"Broker User";
+    const profileName=document.querySelector(".sidebar-profile .profile-info b");
+    const profileEmail=document.querySelector(".sidebar-profile .profile-info span");
+    const avatar=document.querySelector(".sidebar-profile .avatar");
+    if(profileName)profileName.textContent=name;
+    if(profileEmail)profileEmail.textContent=user.email||"Authenticated user";
+    if(avatar)avatar.textContent=initials(name);
+
+    const userName=document.getElementById("topUserName");
+    if(userName)userName.textContent=name;
+}
+
+async function logout(){
+    try{
+        if(firebaseReady) await firebase.auth().signOut();
+    }catch(e){}
+    localStorage.removeItem("estatepro_user");
+    lockApp();
+}
+
+function toggleUserMenu(){
+    document.getElementById("userDropdown")?.classList.toggle("show");
+}
+
+
+/* =========================================================
+   DATABASE / JSON
+========================================================= */
+
+const DEFAULT_PROPERTIES = [
+
+{
+ id:"EST-1001",
+ title:"Luxury 3 BHK Apartment",
+ type:"Apartment",
+ purpose:"Sale",
+ status:"Available",
+ price:8500000,
+ location:"Satellite, Ahmedabad",
+ address:"Satellite Road, Ahmedabad, Gujarat",
+ area:"1650 sq.ft",
+ beds:3,
+ baths:2,
+ balcony:2,
+ parking:"2 Cars",
+ floor:"5th Floor",
+ totalFloors:12,
+ furnished:"Semi-Furnished",
+ facing:"East",
+ year:2024,
+ possession:"Ready to Move",
+ commission:2,
+ agent:"Meet Patel",
+ featured:true,
+ image:"https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=85",
+ image2:"https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=80",
+ image3:"https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1000&q=80",
+ amenities:["Gym","Swimming Pool","Security","Parking","Garden"],
+ description:"Premium 3 BHK apartment with modern interiors, excellent connectivity and premium society amenities."
+},
+
+{
+ id:"EST-1002",
+ title:"Premium 4 BHK Villa",
+ type:"Villa",
+ purpose:"Sale",
+ status:"Available",
+ price:18500000,
+ location:"Shela, Ahmedabad",
+ address:"Shela, South Ahmedabad",
+ area:"3200 sq.ft",
+ beds:4,
+ baths:4,
+ balcony:3,
+ parking:"3 Cars",
+ floor:"Ground + 2",
+ totalFloors:3,
+ furnished:"Fully Furnished",
+ facing:"North-East",
+ year:2025,
+ possession:"Ready to Move",
+ commission:2,
+ agent:"Raj Shah",
+ featured:true,
+ image:"https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=85",
+ image2:"https://images.unsplash.com/photo-1605146769289-440113cc3d00?auto=format&fit=crop&w=1000&q=80",
+ image3:"https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1000&q=80",
+ amenities:["Private Garden","Pool","Security","Parking","Club House"],
+ description:"Beautiful premium villa with spacious bedrooms, private garden, modern architecture and excellent amenities."
+},
+
+{
+ id:"EST-1003",
+ title:"Modern Family House",
+ type:"House",
+ purpose:"Sale",
+ status:"Pending",
+ price:7200000,
+ location:"Bopal, Ahmedabad",
+ address:"Bopal Main Road",
+ area:"1900 sq.ft",
+ beds:3,
+ baths:3,
+ balcony:2,
+ parking:"2 Cars",
+ floor:"Ground + 1",
+ totalFloors:2,
+ furnished:"Semi-Furnished",
+ facing:"West",
+ year:2021,
+ possession:"Ready to Move",
+ commission:2,
+ agent:"Meet Patel",
+ featured:false,
+ image:"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+ image2:"https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=80",
+ image3:"https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1000&q=80",
+ amenities:["Parking","Garden","Security","Water Supply"],
+ description:"Comfortable independent family house in a peaceful residential neighbourhood."
+},
+
+{
+ id:"EST-1004",
+ title:"Prime Residential Plot",
+ type:"Plot",
+ purpose:"Sale",
+ status:"Available",
+ price:4200000,
+ location:"South Bopal",
+ address:"South Bopal Extension",
+ area:"1800 sq.ft",
+ beds:0,
+ baths:0,
+ balcony:0,
+ parking:"-",
+ floor:"-",
+ totalFloors:"-",
+ furnished:"-",
+ facing:"North",
+ year:"-",
+ possession:"Immediate",
+ commission:2,
+ agent:"Neha Mehta",
+ featured:true,
+ image:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=85",
+ image2:"",
+ image3:"",
+ amenities:["Road Access","Water","Electricity","Gated"],
+ description:"Residential plot in a growing locality suitable for constructing an independent home."
+},
+
+{
+ id:"EST-1005",
+ title:"Corporate Office Space",
+ type:"Office",
+ purpose:"Rent",
+ status:"Available",
+ price:85000,
+ location:"SG Highway, Ahmedabad",
+ address:"SG Highway Business District",
+ area:"2200 sq.ft",
+ beds:0,
+ baths:2,
+ balcony:0,
+ parking:"10 Cars",
+ floor:"8th Floor",
+ totalFloors:15,
+ furnished:"Fully Furnished",
+ facing:"East",
+ year:2023,
+ possession:"Ready",
+ commission:1.5,
+ agent:"Raj Shah",
+ featured:true,
+ image:"https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=85",
+ image2:"https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=80",
+ image3:"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=80",
+ amenities:["Reception","Conference Room","Parking","Lift","Security"],
+ description:"Fully furnished corporate office suitable for IT, consulting and professional businesses."
+},
+
+{
+ id:"EST-1006",
+ title:"Prime Commercial Shop",
+ type:"Shop",
+ purpose:"Rent",
+ status:"Rented",
+ price:65000,
+ location:"Prahlad Nagar",
+ address:"Prahlad Nagar Main Road",
+ area:"900 sq.ft",
+ beds:0,
+ baths:1,
+ balcony:0,
+ parking:"4 Cars",
+ floor:"Ground Floor",
+ totalFloors:8,
+ furnished:"Unfurnished",
+ facing:"South",
+ year:2022,
+ possession:"Ready",
+ commission:1.5,
+ agent:"Neha Mehta",
+ featured:false,
+ image:"https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&q=85",
+ image2:"",
+ image3:"",
+ amenities:["Main Road","Parking","Security","Power Backup"],
+ description:"High-footfall commercial shop suitable for retail, showroom or service business."
+},
+
+{
+ id:"EST-1007",
+ title:"Industrial Warehouse",
+ type:"Warehouse",
+ purpose:"Rent",
+ status:"Available",
+ price:120000,
+ location:"Changodar, Ahmedabad",
+ address:"Changodar Industrial Estate",
+ area:"8000 sq.ft",
+ beds:0,
+ baths:2,
+ balcony:0,
+ parking:"20 Vehicles",
+ floor:"Ground",
+ totalFloors:1,
+ furnished:"Unfurnished",
+ facing:"East",
+ year:2020,
+ possession:"Immediate",
+ commission:1.5,
+ agent:"Meet Patel",
+ featured:false,
+ image:"https://images.unsplash.com/photo-1586528116493-da8b7a4b8b9d?auto=format&fit=crop&w=1200&q=85",
+ image2:"",
+ image3:"",
+ amenities:["Loading Dock","Parking","Security","Power Backup","Truck Access"],
+ description:"Large industrial warehouse suitable for logistics, storage and manufacturing operations."
+},
+
+{
+ id:"EST-1008",
+ title:"Commercial Building",
+ type:"Commercial",
+ purpose:"Sale",
+ status:"Available",
+ price:25000000,
+ location:"Navrangpura, Ahmedabad",
+ address:"Navrangpura Business Zone",
+ area:"6000 sq.ft",
+ beds:0,
+ baths:5,
+ balcony:2,
+ parking:"15 Cars",
+ floor:"Ground + 4",
+ totalFloors:5,
+ furnished:"Semi-Furnished",
+ facing:"West",
+ year:2019,
+ possession:"Ready",
+ commission:2,
+ agent:"Raj Shah",
+ featured:true,
+ image:"https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85",
+ image2:"",
+ image3:"",
+ amenities:["Parking","Lift","Security","Reception","Power Backup"],
+ description:"Multi-purpose commercial building located in a prime business district."
+}
+
+];
+
+
+const DEFAULT_LEADS = [
+
+{
+ id:1,
+ name:"Rahul Shah",
+ phone:"+91 98765 11111",
+ email:"rahul@example.com",
+ type:"Buyer",
+ status:"Hot",
+ budget:10000000,
+ property:"Luxury 3 BHK Apartment",
+ notes:"Interested in immediate site visit.",
+ date:"2026-08-20"
+},
+
+{
+ id:2,
+ name:"Priya Mehta",
+ phone:"+91 98765 22222",
+ email:"priya@example.com",
+ type:"Tenant",
+ status:"Warm",
+ budget:100000,
+ property:"Corporate Office Space",
+ notes:"Looking for office near SG Highway.",
+ date:"2026-08-19"
+},
+
+{
+ id:3,
+ name:"Amit Patel",
+ phone:"+91 98765 33333",
+ email:"amit@example.com",
+ type:"Investor",
+ status:"New",
+ budget:30000000,
+ property:"Commercial Building",
+ notes:"Interested in commercial investment.",
+ date:"2026-08-18"
+},
+
+{
+ id:4,
+ name:"Karan Joshi",
+ phone:"+91 98765 44444",
+ email:"karan@example.com",
+ type:"Buyer",
+ status:"Cold",
+ budget:7000000,
+ property:"House",
+ notes:"Needs more options.",
+ date:"2026-08-17"
+}
+
+];
+
+
+const DEFAULT_CLIENTS = [
+
+{
+ id:1,
+ name:"Rahul Shah",
+ phone:"+91 98765 11111",
+ email:"rahul@example.com",
+ type:"Buyer",
+ notes:"Existing buyer"
+},
+
+{
+ id:2,
+ name:"Priya Mehta",
+ phone:"+91 98765 22222",
+ email:"priya@example.com",
+ type:"Tenant",
+ notes:"Corporate tenant"
+},
+
+{
+ id:3,
+ name:"Amit Patel",
+ phone:"+91 98765 33333",
+ email:"amit@example.com",
+ type:"Investor",
+ notes:"Commercial investor"
+}
+
+];
+
+
+const DEFAULT_APPOINTMENTS = [
+
+{
+ id:1,
+ client:"Rahul Shah",
+ property:"Luxury 3 BHK Apartment",
+ date:"2026-08-22",
+ time:"11:00",
+ type:"Site Visit",
+ status:"Confirmed"
+},
+
+{
+ id:2,
+ client:"Priya Mehta",
+ property:"Corporate Office Space",
+ date:"2026-08-23",
+ time:"15:30",
+ type:"Office Meeting",
+ status:"Pending"
+},
+
+{
+ id:3,
+ client:"Amit Patel",
+ property:"Commercial Building",
+ date:"2026-08-25",
+ time:"12:00",
+ type:"Site Visit",
+ status:"Confirmed"
+}
+
+];
+
+
+const DEFAULT_DEALS = [
+
+{
+ id:1,
+ client:"Rohan Mehta",
+ property:"2 BHK Apartment",
+ value:6500000,
+ commissionPercent:2,
+ commission:130000,
+ agent:"Meet Patel",
+ date:"2026-08-05",
+ status:"Completed"
+},
+
+{
+ id:2,
+ client:"Ankit Shah",
+ property:"Office Space",
+ value:8500000,
+ commissionPercent:1.5,
+ commission:127500,
+ agent:"Raj Shah",
+ date:"2026-08-10",
+ status:"Completed"
+}
+
+];
+
+
+const DEFAULT_AGENTS = [
+
+{
+ id:1,
+ name:"Meet Patel",
+ phone:"+91 98765 43210",
+ email:"meet@estatepro.com",
+ role:"Senior Broker",
+ deals:18,
+ commission:1250000
+},
+
+{
+ id:2,
+ name:"Raj Shah",
+ phone:"+91 98765 55555",
+ email:"raj@estatepro.com",
+ role:"Property Consultant",
+ deals:11,
+ commission:720000
+},
+
+{
+ id:3,
+ name:"Neha Mehta",
+ phone:"+91 98765 66666",
+ email:"neha@estatepro.com",
+ role:"Sales Agent",
+ deals:8,
+ commission:510000
+}
+
+];
+
+
+const DEFAULT_TASKS = [
+
+{
+ id:1,
+ task:"Call Rahul regarding site visit",
+ client:"Rahul Shah",
+ priority:"High",
+ due:"2026-08-21",
+ status:"Pending"
+},
+
+{
+ id:2,
+ task:"Send office property brochure",
+ client:"Priya Mehta",
+ priority:"Medium",
+ due:"2026-08-22",
+ status:"Pending"
+},
+
+{
+ id:3,
+ task:"Follow up with Amit",
+ client:"Amit Patel",
+ priority:"Low",
+ due:"2026-08-24",
+ status:"Completed"
+}
+
+];
+
+
+/* =========================================================
+   LOCAL STORAGE DATABASE
+========================================================= */
+
+let properties = loadData("properties",DEFAULT_PROPERTIES);
+let leads = loadData("leads",DEFAULT_LEADS);
+let clients = loadData("clients",DEFAULT_CLIENTS);
+let appointments = loadData("appointments",DEFAULT_APPOINTMENTS);
+let deals = loadData("deals",DEFAULT_DEALS);
+let agents = loadData("agents",DEFAULT_AGENTS);
+let tasks = loadData("tasks",DEFAULT_TASKS);
+let favorites = loadData("favorites",[]);
+let compareList = loadData("compare",[]);
+let soldProperties = loadData("soldProperties",[]);
+let selectedSoldIds = loadData("selectedSoldIds",[]);
+
+let editingPropertyId = null;
+
+
+function loadData(key,fallback){
+
+    try{
+
+        const value=localStorage.getItem("estatepro_"+key);
+
+        return value ? JSON.parse(value) : structuredClone(fallback);
+
+    }catch(e){
+
+        return structuredClone(fallback);
+
+    }
+
+}
+
+
+function saveData(key,value){
+
+    localStorage.setItem(
+        "estatepro_"+key,
+        JSON.stringify(value)
+    );
+
+}
+
+
+/* =========================================================
+   PAGE CONFIG
+========================================================= */
+
+const PAGE_INFO={
+
+ dashboard:[
+     "Dashboard",
+     "Brokerage overview and business performance"
+ ],
+
+ portal:[
+     "Property Portal",
+     "Public property discovery"
+ ],
+
+ properties:[
+     "Properties",
+     "Property inventory management"
+ ],
+
+ sold:[
+     "Sold Properties",
+     "Closed property archive"
+ ],
+
+ leads:[
+     "Leads",
+     "Manage property enquiries"
+ ],
+
+ clients:[
+     "Clients",
+     "Customer relationship management"
+ ],
+
+ appointments:[
+     "Appointments",
+     "Meetings and site visits"
+ ],
+
+ deals:[
+     "Deals",
+     "Transactions and commissions"
+ ],
+
+ agents:[
+     "Agents",
+     "Brokerage team management"
+ ],
+
+ tasks:[
+     "Tasks",
+     "Follow-ups and reminders"
+ ],
+
+ favorites:[
+     "Favorites",
+     "Saved properties"
+ ],
+
+ compare:[
+     "Compare",
+     "Compare selected properties"
+ ],
+
+ calculator:[
+     "Calculator",
+     "EMI and brokerage calculations"
+ ],
+
+ reports:[
+     "Reports",
+     "Business analytics"
+ ],
+
+ settings:[
+     "Settings",
+     "Brokerage configuration"
+ ]
+
+};
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function navigate(page,button){
+
+    document.querySelectorAll(".page")
+    .forEach(x=>x.classList.remove("active"));
+
+    const target=document.getElementById("page-"+page);
+
+    if(target)
+        target.classList.add("active");
+
+
+    document.querySelectorAll(".nav-btn")
+    .forEach(x=>x.classList.remove("active"));
+
+
+    const nav=document.querySelector(
+        `.nav-btn[data-page="${page}"]`
+    );
+
+    if(nav)
+        nav.classList.add("active");
+
+
+    if(PAGE_INFO[page]){
+
+        document.getElementById("pageTitle")
+        .textContent=PAGE_INFO[page][0];
+
+        document.getElementById("pageSubtitle")
+        .textContent=PAGE_INFO[page][1];
+
+    }
+
+
+    document.getElementById("sidebar")
+    .classList.remove("open");
+
+
+    refreshPage(page);
+
+}
+
+
+function refreshPage(page){
+
+    if(page==="dashboard")
+        renderDashboard();
+
+    if(page==="portal")
+        renderPortal();
+
+    if(page==="properties")
+        renderProperties();
+
+    if(page==="sold")
+        renderSoldProperties();
+
+    if(page==="leads")
+        renderLeads();
+
+    if(page==="clients")
+        renderClients();
+
+    if(page==="appointments")
+        renderAppointments();
+
+    if(page==="deals")
+        renderDeals();
+
+    if(page==="agents")
+        renderAgents();
+
+    if(page==="tasks")
+        renderTasks();
+
+    if(page==="favorites")
+        renderFavorites();
+
+    if(page==="compare")
+        renderCompare();
+
+    if(page==="reports")
+        renderReports();
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderDashboard(){
+
+    document.getElementById("dashProperties")
+        .textContent=properties.length;
+
+    document.getElementById("dashLeads")
+        .textContent=leads.filter(x=>x.status!=="Cold").length;
+
+    document.getElementById("dashVisits")
+        .textContent=appointments.filter(
+            x=>x.status!=="Cancelled"
+        ).length;
+
+
+    const commission=deals.reduce(
+        (sum,d)=>sum+Number(d.commission||0),0
+    );
+
+    document.getElementById("dashCommission")
+        .textContent=formatPrice(commission);
+
+
+    document.getElementById("leadNavBadge")
+        .textContent=leads.filter(
+            x=>x.status==="Hot"
+        ).length;
+
+
+    renderRecentProperties();
+    renderLeadPipeline();
+    renderTodayVisits();
+    renderTopAgents();
+
+}
+
+
+function renderRecentProperties(){
+
+    const tbody=document.getElementById(
+        "recentProperties"
+    );
+
+    tbody.innerHTML=properties
+    .slice(0,6)
+    .map(p=>`
+
+        <tr>
+
+            <td>
+
+                <div class="mini-property">
+
+                    <img src="${safeImage(p.image)}">
+
+                    <div>
+                        <b>${escapeHTML(p.title)}</b>
+                        <span>${escapeHTML(p.location)}</span>
+                    </div>
+
+                </div>
+
+            </td>
+
+            <td>${p.type}</td>
+
+            <td>${formatPrice(p.price)}</td>
+
+            <td>${statusBadge(p.status)}</td>
+
+        </tr>
+
+    `)
+    .join("");
+
+}
+
+
+function renderLeadPipeline(){
+
+    const counts={
+        Hot:leads.filter(x=>x.status==="Hot").length,
+        Warm:leads.filter(x=>x.status==="Warm").length,
+        New:leads.filter(x=>x.status==="New").length,
+        Cold:leads.filter(x=>x.status==="Cold").length
+    };
+
+    const total=leads.length||1;
+
+    document.getElementById("leadPipeline")
+    .innerHTML=Object.entries(counts)
+    .map(([key,value])=>`
+
+        <div style="margin-bottom:14px">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:10px;
+                margin-bottom:5px">
+
+                <span>${key}</span>
+                <b>${value}</b>
+
+            </div>
+
+            <div style="
+                height:7px;
+                background:var(--bg);
+                border-radius:20px;
+                overflow:hidden">
+
+                <div style="
+                    width:${value/total*100}%;
+                    height:100%;
+                    background:${
+                        key==="Hot"
+                        ? "#dc2626"
+                        : key==="Warm"
+                        ? "#f59e0b"
+                        : key==="New"
+                        ? "#2563eb"
+                        : "#94a3b8"
+                    };
+                "></div>
+
+            </div>
+
+        </div>
+
+    `)
+    .join("");
+
+}
+
+
+function renderTodayVisits(){
+
+    const box=document.getElementById(
+        "todayVisits"
+    );
+
+    const data=appointments.slice(0,4);
+
+    if(!data.length){
+
+        box.innerHTML=
+        `<div class="empty">No visits scheduled.</div>`;
+
+        return;
+
+    }
+
+    box.innerHTML=data.map(a=>`
+
+        <div style="
+            padding:10px 0;
+            border-bottom:1px solid var(--border)">
+
+            <b style="font-size:11px">
+                ${escapeHTML(a.client)}
+            </b>
+
+            <div style="
+                color:var(--muted);
+                font-size:9px">
+
+                ${escapeHTML(a.property)}
+
+            </div>
+
+            <div style="
+                color:var(--primary);
+                font-size:9px;
+                margin-top:4px">
+
+                📅 ${a.date} · ${a.time}
+
+            </div>
+
+        </div>
+
+    `).join("");
+
+}
+
+
+function renderTopAgents(){
+
+    const box=document.getElementById(
+        "topAgents"
+    );
+
+    box.innerHTML=[...agents]
+    .sort((a,b)=>b.deals-a.deals)
+    .slice(0,4)
+    .map((a,i)=>`
+
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom:12px">
+
+            <div class="avatar">
+                ${initials(a.name)}
+            </div>
+
+            <div style="flex:1">
+                <b style="font-size:10px">
+                    ${escapeHTML(a.name)}
+                </b>
+
+                <div style="
+                    color:var(--muted);
+                    font-size:9px">
+
+                    ${a.deals} deals
+
+                </div>
+            </div>
+
+            <span style="
+                color:var(--success);
+                font-size:9px">
+
+                #${i+1}
+
+            </span>
+
+        </div>
+
+    `)
+    .join("");
+
+}
+
+
+/* =========================================================
+   PORTAL
+========================================================= */
+
+function renderPortal(){
+
+    const featured=properties
+        .filter(p=>p.featured)
+        .slice(0,6);
+
+    document.getElementById(
+        "portalPropertyGrid"
+    ).innerHTML=featured
+    .map(propertyCard)
+    .join("");
+
+}
+
+
+function portalSearch(){
+
+    const search=document.getElementById(
+        "portalSearch"
+    ).value.toLowerCase();
+
+    const purpose=document.getElementById(
+        "portalPurpose"
+    ).value;
+
+    const type=document.getElementById(
+        "portalType"
+    ).value;
+
+
+    const result=properties.filter(p=>{
+
+        const text=
+            `${p.title} ${p.location} ${p.type}`
+            .toLowerCase();
+
+        return (
+            (!search||text.includes(search)) &&
+            (!purpose||p.purpose===purpose) &&
+            (!type||p.type===type)
+        );
+
+    });
+
+
+    document.getElementById(
+        "portalPropertyGrid"
+    ).innerHTML=result.length
+    ?result.map(propertyCard).join("")
+    :`
+
+        <div class="empty"
+             style="grid-column:1/-1">
+
+            <div class="empty-icon">🔎</div>
+
+            <h3>No properties found</h3>
+
+            <p>
+                Try another location or property type.
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   PROPERTY MANAGEMENT
+========================================================= */
+
+function renderProperties(){
+
+    const search=(document.getElementById(
+        "propertySearch"
+    )?.value||"").toLowerCase();
+
+    const type=document.getElementById(
+        "filterType"
+    )?.value||"";
+
+    const purpose=document.getElementById(
+        "filterPurpose"
+    )?.value||"";
+
+    const status=document.getElementById(
+        "filterStatus"
+    )?.value||"";
+
+    const sort=document.getElementById(
+        "filterSort"
+    )?.value||"";
+
+
+    let data=properties.filter(p=>{
+
+        const text=
+            `${p.id} ${p.title} ${p.location} ${p.address}`
+            .toLowerCase();
+
+        return(
+            (!search||text.includes(search))&&
+            (!type||p.type===type)&&
+            (!purpose||p.purpose===purpose)&&
+            (!status||p.status===status)
+        );
+
+    });
+
+
+    if(sort==="low")
+        data.sort((a,b)=>a.price-b.price);
+
+    if(sort==="high")
+        data.sort((a,b)=>b.price-a.price);
+
+    if(sort==="new")
+        data.reverse();
+
+
+    const grid=document.getElementById(
+        "propertyGrid"
+    );
+
+
+    if(!data.length){
+
+        grid.innerHTML=`
+
+            <div class="empty"
+                 style="grid-column:1/-1">
+
+                <div class="empty-icon">🏠</div>
+
+                <h3>No properties found</h3>
+
+                <p>Change your filters or add a property.</p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    grid.innerHTML=data.map(propertyCard).join("");
+
+}
+
+
+function propertyCard(p){
+
+    const isFav=favorites.includes(p.id);
+
+    const inCompare=compareList.includes(p.id);
+
+    return `
+
+        <article class="property-card">
+
+            <div class="property-image">
+
+                <img
+                    src="${safeImage(p.image)}"
+                    alt="${escapeHTML(p.title)}">
+
+                <div class="property-top-left">
+
+                    ${statusBadge(p.status)}
+
+                </div>
+
+                <div class="property-top-right">
+
+                    ${
+                        p.featured
+                        ? `<span class="featured-label">
+                            ⭐ Featured
+                           </span>`
+                        :""
+                    }
+
+                    <button
+                        class="heart-btn"
+                        onclick="toggleFavorite('${p.id}')">
+
+                        ${isFav?"❤️":"♡"}
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="property-content">
+
+                <h3>
+                    ${escapeHTML(p.title)}
+                </h3>
+
+                <div class="property-location">
+                    📍 ${escapeHTML(p.location)}
+                </div>
+
+                <div class="property-price">
+
+                    ${formatPrice(p.price)}
+
+                    <small>
+                        ${p.purpose==="Rent"?"/ month":""}
+                    </small>
+
+                </div>
+
+
+                <div class="property-features">
+
+                    <span>🛏 ${p.beds} Bed</span>
+
+                    <span>🚿 ${p.baths} Bath</span>
+
+                    <span>📐 ${escapeHTML(p.area)}</span>
+
+                    <span>🚗 ${escapeHTML(p.parking)}</span>
+
+                </div>
+
+
+                <div class="property-actions">
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="viewProperty('${p.id}')">
+                        View
+                    </button>
+
+                    <button
+                        class="btn btn-outline"
+                        onclick="editProperty('${p.id}')">
+                        Edit
+                    </button>
+
+                    <button
+                        class="btn btn-warning"
+                        onclick="markPropertySold('${p.id}')">
+                        Sold
+                    </button>
+
+                    <button
+                        class="btn ${
+                            inCompare
+                            ?"btn-success"
+                            :"btn-outline"
+                        }"
+                        onclick="toggleCompare('${p.id}')">
+
+                        ${inCompare?"✓":"⚖"}
+
+                    </button>
+
+                    <button
+                        class="btn btn-danger"
+                        onclick="deleteProperty('${p.id}')">
+                        🗑
+                    </button>
+
+                </div>
+
+            </div>
+
+        </article>
+
+    `;
+
+}
+
+
+
+/* =========================================================
+   SOLD INVENTORY
+========================================================= */
+
+function markPropertySold(id){
+    const index=properties.findIndex(x=>x.id===id);
+    if(index===-1)return;
+
+    const p=properties[index];
+
+    if(!confirm(`Move "${p.title}" to Sold Properties?`)) return;
+
+    const soldRecord={
+        ...p,
+        status:"Sold",
+        soldAt:new Date().toISOString(),
+        soldDate:new Date().toISOString().slice(0,10),
+        soldPrice:p.price,
+        saleReference:"SALE-"+Date.now()
+    };
+
+    soldProperties.unshift(soldRecord);
+    properties.splice(index,1);
+
+    saveData("soldProperties",soldProperties);
+    saveData("properties",properties);
+
+    renderAll();
+    renderSoldProperties();
+    toast("Property moved to Sold Properties.");
+}
+
+function renderSoldProperties(){
+    const grid=document.getElementById("soldGrid");
+    if(!grid)return;
+
+    const q=(document.getElementById("soldSearch")?.value||"").toLowerCase().trim();
+    const type=document.getElementById("soldTypeFilter")?.value||"";
+
+    const data=soldProperties.filter(p=>{
+        const hay=[
+            p.id,p.title,p.location,p.address,p.agent,p.buyerName,p.saleReference
+        ].join(" ").toLowerCase();
+        return (!q||hay.includes(q)) && (!type||p.type===type);
+    });
+
+    if(!data.length){
+        grid.innerHTML=`<div class="empty" style="grid-column:1/-1">
+            <div class="empty-icon">🏷️</div>
+            <h3>No sold properties</h3>
+            <p>Mark an active property as Sold and it will appear here automatically.</p>
+        </div>`;
+        return;
+    }
+
+    grid.innerHTML=data.map(p=>`
+      <article class="sold-card">
+        <img src="${safeImage(p.image)}" alt="${escapeHTML(p.title)}">
+        <div class="sold-card-body">
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <b>${escapeHTML(p.title)}</b>
+            <span class="badge badge-sold">SOLD</span>
+          </div>
+          <div class="sold-meta">
+            <span>${escapeHTML(p.id)}</span>
+            <span>${escapeHTML(p.type||"Property")}</span>
+          </div>
+          <div class="sold-meta">
+            <span>📍 ${escapeHTML(p.location||"")}</span>
+            <span>₹${Number(p.soldPrice||p.price||0).toLocaleString("en-IN")}</span>
+          </div>
+          <div class="chip-row">
+            <span class="chip">Closed ${escapeHTML(p.soldDate||"")}</span>
+            <span class="chip">${escapeHTML(p.agent||"Broker")}</span>
+          </div>
+          <div class="property-actions" style="margin-top:13px">
+            <button class="btn btn-outline" onclick="viewSoldProperty('${p.id}')">View</button>
+            <button class="btn btn-primary" onclick="restoreSoldProperty('${p.id}')">Restore</button>
+            <button class="btn btn-danger" onclick="deleteSoldProperty('${p.id}')">Delete</button>
+          </div>
+        </div>
+      </article>
+    `).join("");
+}
+
+function viewSoldProperty(id){
+    const p=soldProperties.find(x=>x.id===id);
+    if(!p)return;
+    alert(
+      `SOLD PROPERTY\n\n`+
+      `ID: ${p.id}\n`+
+      `Title: ${p.title}\n`+
+      `Type: ${p.type}\n`+
+      `Location: ${p.location}\n`+
+      `Sold Price: ${formatPrice(p.soldPrice||p.price)}\n`+
+      `Sold Date: ${p.soldDate||"-"}\n`+
+      `Agent: ${p.agent||"-"}\n`+
+      `Reference: ${p.saleReference||"-"}`
+    );
+}
+
+function restoreSoldProperty(id){
+    const index=soldProperties.findIndex(x=>x.id===id);
+    if(index===-1)return;
+    if(!confirm("Restore this property to active inventory?"))return;
+
+    const p={...soldProperties[index]};
+    delete p.soldAt;
+    delete p.soldDate;
+    delete p.soldPrice;
+    delete p.saleReference;
+    p.status="Available";
+
+    properties.unshift(p);
+    soldProperties.splice(index,1);
+
+    saveData("properties",properties);
+    saveData("soldProperties",soldProperties);
+
+    renderAll();
+    renderSoldProperties();
+    toast("Property restored to active inventory.");
+}
+
+function restoreSelectedSold(){
+    if(!selectedSoldIds.length){
+        toast("Select sold records from the archive to restore.");
+        return;
+    }
+    [...selectedSoldIds].forEach(id=>restoreSoldProperty(id));
+    selectedSoldIds=[];
+    saveData("selectedSoldIds",selectedSoldIds);
+}
+
+function deleteSoldProperty(id){
+    const index=soldProperties.findIndex(x=>x.id===id);
+    if(index===-1)return;
+    if(!confirm("Permanently delete this sold record?"))return;
+
+    soldProperties.splice(index,1);
+    saveData("soldProperties",soldProperties);
+    renderSoldProperties();
+    toast("Sold record deleted.");
+}
+
+function exportSoldProperties(){
+    downloadJSON("estatepro-sold-properties.json",soldProperties);
+    toast("Sold properties exported.");
+}
+
+
+/* =========================================================
+   ADD PROPERTY
+========================================================= */
+
+function openPropertyModal(){
+
+    editingPropertyId=null;
+
+    document.getElementById(
+        "propertyModalTitle"
+    ).textContent="Add New Property";
+
+    document.getElementById(
+        "propertyForm"
+    ).reset();
+
+    document.getElementById(
+        "pCommission"
+    ).value=2;
+
+    openModal("propertyModal");
+
+}
+
+
+function editProperty(id){
+
+    const p=properties.find(x=>x.id===id);
+
+    if(!p)return;
+
+    editingPropertyId=id;
+
+    document.getElementById(
+        "propertyModalTitle"
+    ).textContent="Edit Property";
+
+
+    pId.value=p.id;
+    pTitle.value=p.title;
+    pType.value=p.type;
+    pPurpose.value=p.purpose;
+    pStatus.value=p.status;
+    pPrice.value=p.price;
+    pLocation.value=p.location;
+    pAddress.value=p.address||"";
+    pArea.value=p.area;
+    pBeds.value=p.beds;
+    pBaths.value=p.baths;
+    pBalcony.value=p.balcony||0;
+    pParking.value=p.parking;
+    pFloor.value=p.floor;
+    pTotalFloors.value=p.totalFloors;
+    pFurnished.value=p.furnished;
+    pFacing.value=p.facing;
+    pYear.value=p.year;
+    pPossession.value=p.possession;
+    pCommission.value=p.commission||2;
+    pAgent.value=p.agent||"Meet Patel";
+    pImage.value=p.image||"";
+    pImage2.value=p.image2||"";
+    pImage3.value=p.image3||"";
+    pAmenities.value=(p.amenities||[]).join(", ");
+    pDescription.value=p.description||"";
+    pFeatured.checked=!!p.featured;
+
+    openModal("propertyModal");
+
+}
+
+
+document.getElementById(
+    "propertyForm"
+).addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+
+    const property={
+
+        id:pId.value.trim()||
+           "EST-"+Date.now(),
+
+        title:pTitle.value.trim(),
+
+        type:pType.value,
+
+        purpose:pPurpose.value,
+
+        status:pStatus.value,
+
+        price:Number(pPrice.value)||0,
+
+        location:pLocation.value.trim(),
+
+        address:pAddress.value.trim(),
+
+        area:pArea.value.trim(),
+
+        beds:Number(pBeds.value)||0,
+
+        baths:Number(pBaths.value)||0,
+
+        balcony:Number(pBalcony.value)||0,
+
+        parking:pParking.value.trim(),
+
+        floor:pFloor.value.trim(),
+
+        totalFloors:pTotalFloors.value.trim(),
+
+        furnished:pFurnished.value,
+
+        facing:pFacing.value,
+
+        year:pYear.value,
+
+        possession:pPossession.value.trim(),
+
+        commission:Number(pCommission.value)||0,
+
+        agent:pAgent.value,
+
+        image:pImage.value.trim()||
+        safeImage(""),
+
+        image2:pImage2.value.trim(),
+
+        image3:pImage3.value.trim(),
+
+        amenities:pAmenities.value
+            .split(",")
+            .map(x=>x.trim())
+            .filter(Boolean),
+
+        description:pDescription.value.trim(),
+
+        featured:pFeatured.checked
+
+    };
+
+
+    if(editingPropertyId){
+
+        const index=properties.findIndex(
+            x=>x.id===editingPropertyId
+        );
+
+        if(index!==-1)
+            properties[index]=property;
+
+        toast("Property updated successfully.");
+
+    }else{
+
+        properties.unshift(property);
+
+        toast("Property added successfully.");
+
+    }
+
+
+    saveData("properties",properties);
+
+    closeModal("propertyModal");
+
+    renderAll();
+
+});
+
+
+/* =========================================================
+   DELETE PROPERTY
+========================================================= */
+
+function deleteProperty(id){
+
+    const p=properties.find(x=>x.id===id);
+
+    if(!p)return;
+
+    if(!confirm(
+        `Delete "${p.title}"?`
+    ))return;
+
+
+    properties=properties.filter(
+        x=>x.id!==id
+    );
+
+    favorites=favorites.filter(
+        x=>x!==id
+    );
+
+    compareList=compareList.filter(
+        x=>x!==id
+    );
+
+
+    saveData("properties",properties);
+    saveData("favorites",favorites);
+    saveData("compare",compareList);
+
+    toast("Property deleted.");
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   PROPERTY DETAILS
+========================================================= */
+
+function viewProperty(id){
+
+    const p=properties.find(x=>x.id===id);
+
+    if(!p)return;
+
+
+    const similar=properties
+        .filter(x=>x.id!==id&&x.type===p.type)
+        .slice(0,3);
+
+
+    document.getElementById(
+        "detailContent"
+    ).innerHTML=`
+
+        <div class="detail-gallery">
+
+            <img
+                class="detail-main-image"
+                src="${safeImage(p.image)}">
+
+            <div class="detail-side">
+
+                <img src="${safeImage(p.image2||p.image)}">
+
+                <img src="${safeImage(p.image3||p.image)}">
+
+            </div>
+
+        </div>
+
+
+        <div class="detail-head">
+
+            <div>
+
+                <div style="margin-bottom:8px">
+                    ${statusBadge(p.status)}
+                </div>
+
+                <h1 style="font-size:25px">
+                    ${escapeHTML(p.title)}
+                </h1>
+
+                <p class="text-muted"
+                   style="font-size:11px">
+
+                    📍 ${escapeHTML(p.address||p.location)}
+
+                </p>
+
+            </div>
+
+            <div style="text-align:right">
+
+                <div class="detail-price">
+                    ${formatPrice(p.price)}
+                </div>
+
+                <span class="text-muted"
+                      style="font-size:10px">
+
+                    ${p.purpose==="Rent"
+                    ?"/ month"
+                    :"For Sale"}
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="detail-meta">
+
+            <div>🛏 <b>${p.beds}</b> Bedrooms</div>
+
+            <div>🚿 <b>${p.baths}</b> Bathrooms</div>
+
+            <div>📐 <b>${p.area}</b></div>
+
+            <div>🚗 <b>${p.parking}</b></div>
+
+            <div>🏢 <b>${p.floor}</b></div>
+
+        </div>
+
+
+        <h3>Property Details</h3>
+
+        <br>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <tr>
+                    <td>Property ID</td>
+                    <td>${p.id}</td>
+                </tr>
+
+                <tr>
+                    <td>Type</td>
+                    <td>${p.type}</td>
+                </tr>
+
+                <tr>
+                    <td>Purpose</td>
+                    <td>${p.purpose}</td>
+                </tr>
+
+                <tr>
+                    <td>Furnished</td>
+                    <td>${p.furnished}</td>
+                </tr>
+
+                <tr>
+                    <td>Facing</td>
+                    <td>${p.facing}</td>
+                </tr>
+
+                <tr>
+                    <td>Year Built</td>
+                    <td>${p.year}</td>
+                </tr>
+
+                <tr>
+                    <td>Possession</td>
+                    <td>${p.possession}</td>
+                </tr>
+
+                <tr>
+                    <td>Agent</td>
+                    <td>${p.agent}</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+
+        <br>
+
+        <h3>Amenities</h3>
+
+        <div class="amenities">
+
+            ${(p.amenities||[])
+                .map(a=>`
+                    <span class="amenity">
+                        ✓ ${escapeHTML(a)}
+                    </span>
+                `)
+                .join("")}
+
+        </div>
+
+
+        <br>
+
+        <h3>Description</h3>
+
+        <p class="text-muted"
+           style="font-size:12px;margin-top:8px">
+
+            ${escapeHTML(p.description)}
+
+        </p>
+
+
+        <br>
+
+        <div style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap">
+
+            <button
+                class="btn btn-success"
+                onclick="whatsappProperty('${p.id}')">
+                💬 WhatsApp
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="callBroker()">
+                📞 Call Broker
+            </button>
+
+            <button
+                class="btn btn-outline"
+                onclick="openAppointmentFor('${p.title}')">
+                📅 Schedule Visit
+            </button>
+
+            <button
+                class="btn btn-outline"
+                onclick="shareProperty('${p.id}')">
+                🔗 Share
+            </button>
+
+        </div>
+
+
+        ${
+            similar.length
+            ?`
+
+                <br><br>
+
+                <h3>Similar Properties</h3>
+
+                <br>
+
+                <div class="property-grid">
+
+                    ${similar.map(propertyCard).join("")}
+
+                </div>
+
+            `
+            :""
+        }
+
+    `;
+
+
+    openModal("detailModal");
+
+}
+
+
+/* =========================================================
+   FAVORITES
+========================================================= */
+
+function toggleFavorite(id){
+
+    if(favorites.includes(id)){
+
+        favorites=favorites.filter(
+            x=>x!==id
+        );
+
+        toast("Removed from favorites.");
+
+    }else{
+
+        favorites.push(id);
+
+        toast("Added to favorites.");
+
+    }
+
+    saveData("favorites",favorites);
+
+    renderProperties();
+    renderPortal();
+    renderFavorites();
+
+}
+
+
+function renderFavorites(){
+
+    const data=properties.filter(
+        p=>favorites.includes(p.id)
+    );
+
+    const box=document.getElementById(
+        "favoriteGrid"
+    );
+
+
+    if(!data.length){
+
+        box.innerHTML=`
+
+            <div class="empty"
+                 style="grid-column:1/-1">
+
+                <div class="empty-icon">❤️</div>
+
+                <h3>No favorites yet</h3>
+
+                <p>
+                    Click the heart icon on any property.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    box.innerHTML=data.map(
+        propertyCard
+    ).join("");
+
+}
+
+
+/* =========================================================
+   COMPARE
+========================================================= */
+
+function toggleCompare(id){
+
+    if(compareList.includes(id)){
+
+        compareList=compareList.filter(
+            x=>x!==id
+        );
+
+        toast("Removed from comparison.");
+
+    }else{
+
+        if(compareList.length>=3){
+
+            toast(
+                "You can compare maximum 3 properties."
+            );
+
+            return;
+
+        }
+
+        compareList.push(id);
+
+        toast("Property added to comparison.");
+
+    }
+
+
+    saveData("compare",compareList);
+
+    renderProperties();
+    renderCompare();
+
+}
+
+
+function clearCompare(){
+
+    compareList=[];
+
+    saveData("compare",compareList);
+
+    renderCompare();
+    renderProperties();
+
+}
+
+
+function renderCompare(){
+
+    const box=document.getElementById(
+        "compareContainer"
+    );
+
+    const data=properties.filter(
+        p=>compareList.includes(p.id)
+    );
+
+
+    if(!data.length){
+
+        box.innerHTML=`
+
+            <div class="empty">
+
+                <div class="empty-icon">⚖️</div>
+
+                <h3>No properties selected</h3>
+
+                <p>
+                    Use the ⚖ button on property cards
+                    to compare properties.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    box.innerHTML=`
+
+        <div class="table-wrap">
+
+            <table class="compare-table">
+
+                <tr>
+
+                    <th>Feature</th>
+
+                    ${data.map(p=>`
+
+                        <th>
+
+                            <img
+                                class="compare-image"
+                                src="${safeImage(p.image)}">
+
+                            <br>
+
+                            ${escapeHTML(p.title)}
+
+                        </th>
+
+                    `).join("")}
+
+                </tr>
+
+
+                <tr>
+                    <td>Price</td>
+                    ${data.map(p=>`<td>
+                        <b>${formatPrice(p.price)}</b>
+                    </td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Type</td>
+                    ${data.map(p=>`<td>${p.type}</td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Location</td>
+                    ${data.map(p=>`<td>${p.location}</td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Area</td>
+                    ${data.map(p=>`<td>${p.area}</td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Bedrooms</td>
+                    ${data.map(p=>`<td>${p.beds}</td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Bathrooms</td>
+                    ${data.map(p=>`<td>${p.baths}</td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Parking</td>
+                    ${data.map(p=>`<td>${p.parking}</td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Furnished</td>
+                    ${data.map(p=>`<td>${p.furnished}</td>`).join("")}
+                </tr>
+
+
+                <tr>
+                    <td>Status</td>
+                    ${data.map(p=>`<td>
+                        ${statusBadge(p.status)}
+                    </td>`).join("")}
+                </tr>
+
+            </table>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   LEADS
+========================================================= */
+
+function openLeadModal(){
+
+    document.getElementById(
+        "leadForm"
+    ).reset();
+
+    openModal("leadModal");
+
+}
+
+
+function renderLeads(){
+
+    const search=(document.getElementById(
+        "leadSearch"
+    )?.value||"").toLowerCase();
+
+    const status=document.getElementById(
+        "leadStatusFilter"
+    )?.value||"";
+
+    const type=document.getElementById(
+        "leadTypeFilter"
+    )?.value||"";
+
+
+    const data=leads.filter(l=>{
+
+        const text=
+            `${l.name} ${l.phone} ${l.email} ${l.property}`
+            .toLowerCase();
+
+        return(
+            (!search||text.includes(search))&&
+            (!status||l.status===status)&&
+            (!type||l.type===type)
+        );
+
+    });
+
+
+    const box=document.getElementById(
+        "leadCards"
+    );
+
+
+    if(!data.length){
+
+        box.innerHTML=
+        `<div class="empty"
+              style="grid-column:1/-1">
+              No leads found.
+         </div>`;
+
+        return;
+
+    }
+
+
+    box.innerHTML=data.map(l=>`
+
+        <div class="client-card">
+
+            <div class="client-head">
+
+                <div class="client-avatar">
+                    ${initials(l.name)}
+                </div>
+
+                <div style="flex:1">
+
+                    <div class="client-name">
+                        ${escapeHTML(l.name)}
+                    </div>
+
+                    <div class="client-type">
+                        ${l.type}
+                    </div>
+
+                </div>
+
+                ${leadBadge(l.status)}
+
+            </div>
+
+
+            <div class="client-row">
+                📞 ${escapeHTML(l.phone)}
+            </div>
+
+            <div class="client-row">
+                ✉️ ${escapeHTML(l.email||"-")}
+            </div>
+
+            <div class="client-row">
+                🏠 ${escapeHTML(l.property||"Not specified")}
+            </div>
+
+            <div class="client-row">
+                💰 Budget: ${formatPrice(l.budget||0)}
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    class="btn btn-success btn-sm"
+                    onclick="whatsappLead('${l.phone}','${escapeHTML(l.name)}')">
+                    WhatsApp
+                </button>
+
+                <button
+                    class="btn btn-primary btn-sm"
+                    onclick="callNumber('${l.phone}')">
+                    Call
+                </button>
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deleteLead(${l.id})">
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    `).join("");
+
+}
+
+
+document.getElementById(
+    "leadForm"
+).addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    const lead={
+
+        id:Date.now(),
+
+        name:lName.value.trim(),
+
+        phone:lPhone.value.trim(),
+
+        email:lEmail.value.trim(),
+
+        type:lType.value,
+
+        status:lStatus.value,
+
+        budget:Number(lBudget.value)||0,
+
+        property:lProperty.value.trim(),
+
+        notes:lNotes.value.trim(),
+
+        date:new Date().toISOString().slice(0,10)
+
+    };
+
+
+    leads.unshift(lead);
+
+    saveData("leads",leads);
+
+    closeModal("leadModal");
+
+    toast("Lead added successfully.");
+
+    renderAll();
+
+});
+
+
+function deleteLead(id){
+
+    if(!confirm("Delete this lead?"))
+        return;
+
+    leads=leads.filter(
+        x=>x.id!==id
+    );
+
+    saveData("leads",leads);
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   CLIENTS
+========================================================= */
+
+function openClientModal(){
+
+    document.getElementById(
+        "clientForm"
+    ).reset();
+
+    openModal("clientModal");
+
+}
+
+
+function renderClients(){
+
+    const search=(document.getElementById(
+        "clientSearch"
+    )?.value||"").toLowerCase();
+
+
+    const data=clients.filter(c=>{
+
+        const text=
+            `${c.name} ${c.phone} ${c.email} ${c.type}`
+            .toLowerCase();
+
+        return !search||text.includes(search);
+
+    });
+
+
+    const box=document.getElementById(
+        "clientCards"
+    );
+
+
+    box.innerHTML=data.length
+    ?data.map(c=>`
+
+        <div class="client-card">
+
+            <div class="client-head">
+
+                <div class="client-avatar">
+                    ${initials(c.name)}
+                </div>
+
+                <div>
+                    <div class="client-name">
+                        ${escapeHTML(c.name)}
+                    </div>
+
+                    <div class="client-type">
+                        ${c.type}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="client-row">
+                📞 ${escapeHTML(c.phone)}
+            </div>
+
+            <div class="client-row">
+                ✉️ ${escapeHTML(c.email||"-")}
+            </div>
+
+            <div class="client-row">
+                📝 ${escapeHTML(c.notes||"-")}
+            </div>
+
+            <div class="client-actions">
+
+                <button
+                    class="btn btn-success btn-sm"
+                    onclick="whatsappLead('${c.phone}','${escapeHTML(c.name)}')">
+                    WhatsApp
+                </button>
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deleteClient(${c.id})">
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    `).join("")
+    :`<div class="empty"
+           style="grid-column:1/-1">
+        No clients found.
+      </div>`;
+
+}
+
+
+document.getElementById(
+    "clientForm"
+).addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    clients.unshift({
+
+        id:Date.now(),
+
+        name:cName.value.trim(),
+
+        phone:cPhone.value.trim(),
+
+        email:cEmail.value.trim(),
+
+        type:cType.value,
+
+        notes:cNotes.value.trim()
+
+    });
+
+    saveData("clients",clients);
+
+    closeModal("clientModal");
+
+    toast("Client added.");
+
+    renderClients();
+
+    renderDashboard();
+
+});
+
+
+function deleteClient(id){
+
+    if(!confirm("Delete this client?"))
+        return;
+
+    clients=clients.filter(
+        x=>x.id!==id
+    );
+
+    saveData("clients",clients);
+
+    renderClients();
+
+}
+
+
+/* =========================================================
+   APPOINTMENTS
+========================================================= */
+
+function openAppointmentModal(){
+
+    document.getElementById(
+        "appointmentForm"
+    ).reset();
+
+    openModal("appointmentModal");
+
+}
+
+
+function openAppointmentFor(property){
+
+    closeModal("detailModal");
+
+    openAppointmentModal();
+
+    document.getElementById(
+        "aProperty"
+    ).value=property;
+
+}
+
+
+function renderAppointments(){
+
+    const tbody=document.getElementById(
+        "appointmentTable"
+    );
+
+
+    tbody.innerHTML=appointments.map(a=>`
+
+        <tr>
+
+            <td>
+                <b>${escapeHTML(a.client)}</b>
+            </td>
+
+            <td>${escapeHTML(a.property)}</td>
+
+            <td>${a.date}</td>
+
+            <td>${a.time}</td>
+
+            <td>${a.type}</td>
+
+            <td>
+                ${appointmentBadge(a.status)}
+            </td>
+
+            <td>
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deleteAppointment(${a.id})">
+                    Delete
+                </button>
+
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+document.getElementById(
+    "appointmentForm"
+).addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    appointments.push({
+
+        id:Date.now(),
+
+        client:aClient.value.trim(),
+
+        property:aProperty.value.trim(),
+
+        date:aDate.value,
+
+        time:aTime.value,
+
+        type:aType.value,
+
+        status:aStatus.value
+
+    });
+
+
+    saveData("appointments",appointments);
+
+    closeModal("appointmentModal");
+
+    toast("Appointment scheduled.");
+
+    renderAll();
+
+});
+
+
+function deleteAppointment(id){
+
+    if(!confirm("Delete appointment?"))
+        return;
+
+    appointments=appointments.filter(
+        x=>x.id!==id
+    );
+
+    saveData(
+        "appointments",
+        appointments
+    );
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   DEALS
+========================================================= */
+
+function openDealModal(){
+
+    document.getElementById(
+        "dealForm"
+    ).reset();
+
+    dCommission.value=2;
+
+    openModal("dealModal");
+
+}
+
+
+function renderDeals(){
+
+    const totalValue=deals.reduce(
+        (s,d)=>s+Number(d.value||0),0
+    );
+
+    const commission=deals.reduce(
+        (s,d)=>s+Number(d.commission||0),0
+    );
+
+
+    document.getElementById(
+        "dealValue"
+    ).textContent=formatPrice(totalValue);
+
+    document.getElementById(
+        "dealCommission"
+    ).textContent=formatPrice(commission);
+
+    document.getElementById(
+        "dealCount"
+    ).textContent=deals.length;
+
+    const conversion=
+        leads.length
+        ?Math.round(
+            deals.length/leads.length*100
+        )
+        :0;
+
+    document.getElementById(
+        "dealConversion"
+    ).textContent=conversion+"%";
+
+
+    document.getElementById(
+        "dealTable"
+    ).innerHTML=deals.map(d=>`
+
+        <tr>
+
+            <td>${escapeHTML(d.client)}</td>
+
+            <td>${escapeHTML(d.property)}</td>
+
+            <td>${formatPrice(d.value)}</td>
+
+            <td class="text-success">
+                ${formatPrice(d.commission)}
+            </td>
+
+            <td>${escapeHTML(d.agent)}</td>
+
+            <td>${d.date}</td>
+
+            <td>
+                <span class="badge badge-available">
+                    ${d.status}
+                </span>
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+document.getElementById(
+    "dealForm"
+).addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    const value=Number(dValue.value)||0;
+
+    const percent=
+        Number(dCommission.value)||0;
+
+    const commission=
+        value*percent/100;
+
+
+    deals.unshift({
+
+        id:Date.now(),
+
+        client:dClient.value.trim(),
+
+        property:dProperty.value.trim(),
+
+        value:value,
+
+        commissionPercent:percent,
+
+        commission:commission,
+
+        agent:dAgent.value.trim(),
+
+        date:dDate.value||
+             new Date().toISOString().slice(0,10),
+
+        status:"Completed"
+
+    });
+
+
+    saveData("deals",deals);
+
+    closeModal("dealModal");
+
+    toast("Deal recorded successfully.");
+
+    renderAll();
+
+});
+
+
+/* =========================================================
+   AGENTS
+========================================================= */
+
+function openAgentModal(){
+
+    document.getElementById(
+        "agentForm"
+    ).reset();
+
+    openModal("agentModal");
+
+}
+
+
+function renderAgents(){
+
+    document.getElementById(
+        "agentCards"
+    ).innerHTML=agents.map(a=>`
+
+        <div class="client-card">
+
+            <div class="client-head">
+
+                <div class="avatar">
+                    ${initials(a.name)}
+                </div>
+
+                <div>
+
+                    <div class="client-name">
+                        ${escapeHTML(a.name)}
+                    </div>
+
+                    <div class="client-type">
+                        ${escapeHTML(a.role)}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="client-row">
+                📞 ${escapeHTML(a.phone)}
+            </div>
+
+            <div class="client-row">
+                ✉️ ${escapeHTML(a.email||"-")}
+            </div>
+
+            <div class="client-row">
+                🤝 Deals: <b>${a.deals}</b>
+            </div>
+
+            <div class="client-row">
+                💰 Commission:
+                <b>${formatPrice(a.commission)}</b>
+            </div>
+
+            <div class="client-actions">
+
+                <button
+                    class="btn btn-success btn-sm"
+                    onclick="callNumber('${a.phone}')">
+                    Call
+                </button>
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deleteAgent(${a.id})">
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    `).join("");
+
+}
+
+
+document.getElementById(
+    "agentForm"
+).addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    agents.push({
+
+        id:Date.now(),
+
+        name:agName.value.trim(),
+
+        phone:agPhone.value.trim(),
+
+        email:agEmail.value.trim(),
+
+        role:agRole.value.trim(),
+
+        deals:0,
+
+        commission:0
+
+    });
+
+
+    saveData("agents",agents);
+
+    closeModal("agentModal");
+
+    toast("Agent added.");
+
+    renderAgents();
+
+    renderDashboard();
+
+});
+
+
+function deleteAgent(id){
+
+    if(!confirm("Delete agent?"))
+        return;
+
+    agents=agents.filter(
+        x=>x.id!==id
+    );
+
+    saveData("agents",agents);
+
+    renderAgents();
+
+}
+
+
+/* =========================================================
+   TASKS
+========================================================= */
+
+function openTaskModal(){
+
+    document.getElementById(
+        "taskForm"
+    ).reset();
+
+    openModal("taskModal");
+
+}
+
+
+function renderTasks(){
+
+    const filter=document.getElementById(
+        "taskFilter"
+    )?.value||"";
+
+
+    const data=tasks.filter(
+        t=>!filter||t.status===filter
+    );
+
+
+    document.getElementById(
+        "taskTable"
+    ).innerHTML=data.map(t=>`
+
+        <tr>
+
+            <td>
+                <b>${escapeHTML(t.task)}</b>
+            </td>
+
+            <td>${escapeHTML(t.client)}</td>
+
+            <td>
+
+                <span class="badge ${
+                    t.priority==="High"
+                    ?"badge-hot"
+                    :t.priority==="Medium"
+                    ?"badge-warm"
+                    :"badge-new"
+                }">
+
+                    ${t.priority}
+
+                </span>
+
+            </td>
+
+            <td>${t.due}</td>
+
+            <td>
+
+                <span class="badge ${
+                    t.status==="Completed"
+                    ?"badge-available"
+                    :"badge-pending"
+                }">
+
+                    ${t.status}
+
+                </span>
+
+            </td>
+
+            <td>
+
+                ${
+                    t.status==="Pending"
+                    ?`
+
+                        <button
+                            class="btn btn-success btn-sm"
+                            onclick="completeTask(${t.id})">
+                            Complete
+                        </button>
+
+                    `
+                    :""
+                }
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deleteTask(${t.id})">
+                    Delete
+                </button>
+
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+document.getElementById(
+    "taskForm"
+).addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    tasks.unshift({
+
+        id:Date.now(),
+
+        task:tTask.value.trim(),
+
+        client:tClient.value.trim(),
+
+        priority:tPriority.value,
+
+        due:tDate.value,
+
+        status:"Pending"
+
+    });
+
+
+    saveData("tasks",tasks);
+
+    closeModal("taskModal");
+
+    toast("Task created.");
+
+    renderTasks();
+
+});
+
+
+function completeTask(id){
+
+    const t=tasks.find(
+        x=>x.id===id
+    );
+
+    if(!t)return;
+
+    t.status="Completed";
+
+    saveData("tasks",tasks);
+
+    toast("Task completed.");
+
+    renderTasks();
+
+}
+
+
+function deleteTask(id){
+
+    tasks=tasks.filter(
+        x=>x.id!==id
+    );
+
+    saveData("tasks",tasks);
+
+    renderTasks();
+
+}
+
+
+/* =========================================================
+   EMI CALCULATOR
+========================================================= */
+
+function calculateEMI(){
+
+    const price=Number(
+        document.getElementById("calcPrice").value
+    )||0;
+
+    const down=Number(
+        document.getElementById("calcDown").value
+    )||0;
+
+    const annual=Number(
+        document.getElementById("calcRate").value
+    )||0;
+
+    const years=Number(
+        document.getElementById("calcYears").value
+    )||0;
+
+
+    const principal=Math.max(
+        price-down,
+        0
+    );
+
+    const months=years*12;
+
+    const monthlyRate=
+        annual/12/100;
+
+
+    let emi=0;
+
+
+    if(principal>0&&months>0){
+
+        if(monthlyRate===0){
+
+            emi=principal/months;
+
+        }else{
+
+            emi=
+                principal*
+                monthlyRate*
+                Math.pow(
+                    1+monthlyRate,
+                    months
+                )/
+                (
+                    Math.pow(
+                        1+monthlyRate,
+                        months
+                    )-1
+                );
+
+        }
+
+    }
+
+
+    const total=emi*months;
+
+    const interest=
+        total-principal;
+
+
+    document.getElementById(
+        "emiResult"
+    ).innerHTML=`
+
+        <div style="
+            color:var(--muted);
+            font-size:10px">
+
+            Estimated Monthly EMI
+
+        </div>
+
+        <h2>
+            ${formatPrice(emi)}
+        </h2>
+
+        <br>
+
+        <div class="calc-row">
+            <span>Loan Amount</span>
+            <b>${formatPrice(principal)}</b>
+        </div>
+
+        <div class="calc-row">
+            <span>Total Interest</span>
+            <b>${formatPrice(interest)}</b>
+        </div>
+
+        <div class="calc-row">
+            <span>Total Payment</span>
+            <b>${formatPrice(total)}</b>
+        </div>
+
+    `;
+
+}
+
+
+function calculateCommission(){
+
+    const value=Number(
+        document.getElementById(
+            "commissionValue"
+        ).value
+    )||0;
+
+    const percent=Number(
+        document.getElementById(
+            "commissionPercent"
+        ).value
+    )||0;
+
+    const commission=
+        value*percent/100;
+
+
+    document.getElementById(
+        "commissionResult"
+    ).innerHTML=`
+
+        <div style="
+            color:var(--muted);
+            font-size:10px">
+
+            Estimated Brokerage
+
+        </div>
+
+        <h2>
+            ${formatPrice(commission)}
+        </h2>
+
+        <br>
+
+        <div class="calc-row">
+            <span>Deal Value</span>
+            <b>${formatPrice(value)}</b>
+        </div>
+
+        <div class="calc-row">
+            <span>Commission Rate</span>
+            <b>${percent}%</b>
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   REPORTS
+========================================================= */
+
+function renderReports(){
+
+    const totalCommission=deals.reduce(
+        (s,d)=>s+Number(d.commission||0),
+        0
+    );
+
+
+    document.getElementById(
+        "reportProperties"
+    ).textContent=properties.length;
+
+    document.getElementById(
+        "reportLeads"
+    ).textContent=leads.length;
+
+    document.getElementById(
+        "reportClients"
+    ).textContent=clients.length;
+
+    document.getElementById(
+        "reportAppointments"
+    ).textContent=appointments.length;
+
+    document.getElementById(
+        "reportDeals"
+    ).textContent=deals.length;
+
+    document.getElementById(
+        "reportCommission"
+    ).textContent=
+        formatPrice(totalCommission);
+
+
+    const types={};
+
+    properties.forEach(p=>{
+        types[p.type]=(types[p.type]||0)+1;
+    });
+
+
+    document.getElementById(
+        "propertyMix"
+    ).innerHTML=
+        Object.entries(types)
+        .sort((a,b)=>b[1]-a[1])
+        .map(([type,count])=>`
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                padding:10px 0;
+                border-bottom:1px solid var(--border);
+                font-size:11px">
+
+                <span>${type}</span>
+
+                <b>${count}</b>
+
+            </div>
+
+        `)
+        .join("");
+
+}
+
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+function saveSettings(){
+
+    const settings={
+
+        company:settingCompany.value,
+
+        broker:settingBroker.value,
+
+        phone:settingPhone.value,
+
+        email:settingEmail.value,
+
+        commission:settingCommission.value,
+
+        city:settingCity.value,
+
+        address:settingAddress.value
+
+    };
+
+
+    saveData("settings",settings);
+
+    document.getElementById(
+        "sidebarUser"
+    ).textContent=settings.broker||"Broker";
+
+    toast("Settings saved.");
+
+}
+
+
+function loadSettings(){
+
+    const s=loadData("settings",null);
+
+    if(!s)return;
+
+    settingCompany.value=s.company||"";
+    settingBroker.value=s.broker||"";
+    settingPhone.value=s.phone||"";
+    settingEmail.value=s.email||"";
+    settingCommission.value=s.commission||2;
+    settingCity.value=s.city||"";
+    settingAddress.value=s.address||"";
+
+    document.getElementById(
+        "sidebarUser"
+    ).textContent=
+        s.broker||"Meet Patel";
+
+}
+
+
+/* =========================================================
+   CONTACT FUNCTIONS
+========================================================= */
+
+function whatsappLead(phone,name){
+
+    let number=String(phone)
+        .replace(/\D/g,"");
+
+    if(number.length===10)
+        number="91"+number;
+
+
+    const text=
+        `Hello ${name}, this is EstatePro regarding your property enquiry.`;
+
+
+    window.open(
+        "https://wa.me/"+
+        number+
+        "?text="+
+        encodeURIComponent(text),
+        "_blank"
+    );
+
+}
+
+
+function whatsappProperty(id){
+
+    const p=properties.find(
+        x=>x.id===id
+    );
+
+    if(!p)return;
+
+    const number="919876543210";
+
+    const text=
+        `Hello, I am interested in ${p.title} (${p.id}) located at ${p.location}.`;
+
+
+    window.open(
+        "https://wa.me/"+
+        number+
+        "?text="+
+        encodeURIComponent(text),
+        "_blank"
+    );
+
+}
+
+
+function callNumber(number){
+
+    window.location.href=
+        "tel:"+String(number)
+            .replace(/[^\d+]/g,"");
+
+}
+
+
+function callBroker(){
+
+    callNumber("+919876543210");
+
+}
+
+
+function shareProperty(id){
+
+    const p=properties.find(
+        x=>x.id===id
+    );
+
+    if(!p)return;
+
+
+    const text=
+        `${p.title} — ${formatPrice(p.price)} — ${p.location}`;
+
+
+    if(navigator.share){
+
+        navigator.share({
+
+            title:p.title,
+
+            text:text,
+
+            url:location.href
+
+        }).catch(()=>{});
+
+    }else{
+
+        navigator.clipboard
+            ?.writeText(text);
+
+        toast("Property information copied.");
+
+    }
+
+}
+
+
+/* =========================================================
+   IMPORT / EXPORT
+========================================================= */
+
+function exportProperties(){
+
+    downloadJSON(
+        "estatepro-properties.json",
+        properties
+    );
+
+    toast("Properties exported.");
+
+}
+
+
+function exportFullData(){
+
+    const data={
+
+        properties,
+
+        leads,
+
+        clients,
+
+        appointments,
+
+        deals,
+
+        agents,
+
+        tasks,
+
+        favorites,
+
+        compareList
+
+    };
+
+
+    downloadJSON(
+        "estatepro-backup.json",
+        data
+    );
+
+    toast("Full backup exported.");
+
+}
+
+
+function downloadJSON(filename,data){
+
+    const blob=new Blob(
+        [JSON.stringify(data,null,2)],
+        {type:"application/json"}
+    );
+
+    const url=URL.createObjectURL(blob);
+
+    const a=document.createElement("a");
+
+    a.href=url;
+    a.download=filename;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/* =========================================================
+   GLOBAL SEARCH
+========================================================= */
+
+function globalSearch(event){
+
+    if(event.key!=="Enter")
+        return;
+
+    const query=event.target.value
+        .trim()
+        .toLowerCase();
+
+    if(!query)
+        return;
+
+
+    navigate("properties");
+
+
+    const search=document.getElementById(
+        "propertySearch"
+    );
+
+    search.value=query;
+
+    renderProperties();
+
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+function toggleDark(){
+
+    document.body.classList.toggle("dark");
+
+    localStorage.setItem(
+        "estatepro_dark",
+        document.body.classList.contains("dark")
+    );
+
+}
+
+
+function loadTheme(){
+
+    if(
+        localStorage.getItem(
+            "estatepro_dark"
+        )==="true"
+    ){
+
+        document.body.classList.add("dark");
+
+    }
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+function toggleSidebar(){
+
+    document.getElementById(
+        "sidebar"
+    ).classList.toggle("open");
+
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
+function toggleNotifications(){
+
+    document.getElementById(
+        "notificationPanel"
+    ).classList.toggle("show");
+
+}
+
+
+function markNotificationsRead(){
+
+    document.querySelector(
+        ".notification-dot"
+    ).style.display="none";
+
+    toast("Notifications marked as read.");
+
+}
+
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function openModal(id){
+
+    document.getElementById(id)
+        .classList.add("show");
+
+}
+
+
+function closeModal(id){
+
+    document.getElementById(id)
+        .classList.remove("show");
+
+}
+
+
+window.addEventListener(
+    "click",
+    function(e){
+
+        if(e.target.classList.contains("modal")){
+
+            e.target.classList.remove("show");
+
+        }
+
+        const notification=
+            document.getElementById(
+                "notificationPanel"
+            );
+
+        if(
+            notification.classList.contains("show")&&
+            !e.target.closest(
+                "#notificationPanel"
+            )&&
+            !e.target.closest(
+                ".icon-button"
+            )
+        ){
+
+            notification.classList.remove("show");
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function toast(message){
+
+    const container=
+        document.getElementById(
+            "toastContainer"
+        );
+
+    const item=
+        document.createElement("div");
+
+    item.className="toast";
+
+    item.textContent=message;
+
+    container.appendChild(item);
+
+
+    setTimeout(()=>{
+
+        item.style.opacity="0";
+
+        item.style.transform=
+            "translateX(20px)";
+
+        setTimeout(
+            ()=>item.remove(),
+            250
+        );
+
+    },3000);
+
+}
+
+
+/* =========================================================
+   RESET DATA
+========================================================= */
+
+function resetAllData(){
+
+    if(!confirm(
+        "This will reset all demo data. Continue?"
+    ))return;
+
+
+    localStorage.clear();
+
+    location.reload();
+
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function formatPrice(value){
+
+    value=Number(value)||0;
+
+
+    if(value>=10000000){
+
+        return "₹"+
+            (value/10000000)
+            .toFixed(2)+
+            " Cr";
+
+    }
+
+
+    if(value>=100000){
+
+        return "₹"+
+            (value/100000)
+            .toFixed(2)+
+            " L";
+
+    }
+
+
+    return "₹"+
+        value.toLocaleString("en-IN");
+
+}
+
+
+function statusBadge(status){
+
+    const map={
+
+        Available:"badge-available",
+
+        Pending:"badge-pending",
+
+        Sold:"badge-sold",
+
+        Rented:"badge-rented"
+
+    };
+
+
+    return `
+
+        <span class="badge ${
+            map[status]||"badge-new"
+        }">
+
+            ${escapeHTML(status)}
+
+        </span>
+
+    `;
+
+}
+
+
+function leadBadge(status){
+
+    const map={
+
+        Hot:"badge-hot",
+
+        Warm:"badge-warm",
+
+        New:"badge-new",
+
+        Cold:"badge-cold"
+
+    };
+
+
+    return `
+
+        <span class="badge ${
+            map[status]||"badge-new"
+        }">
+
+            ${escapeHTML(status)}
+
+        </span>
+
+    `;
+
+}
+
+
+function appointmentBadge(status){
+
+    if(status==="Confirmed")
+        return `<span class="badge badge-available">Confirmed</span>`;
+
+    if(status==="Completed")
+        return `<span class="badge badge-rented">Completed</span>`;
+
+    if(status==="Cancelled")
+        return `<span class="badge badge-sold">Cancelled</span>`;
+
+    return `<span class="badge badge-pending">Pending</span>`;
+
+}
+
+
+function initials(name){
+
+    return String(name)
+        .split(" ")
+        .filter(Boolean)
+        .slice(0,2)
+        .map(x=>x[0])
+        .join("")
+        .toUpperCase();
+
+}
+
+
+function safeImage(url){
+
+    return url||
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80";
+
+}
+
+
+function escapeHTML(value){
+
+    return String(value??"")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================================
+   RENDER ALL
+========================================================= */
+
+function renderAll(){
+
+    renderDashboard();
+
+    renderPortal();
+
+    renderProperties();
+
+    renderLeads();
+
+    renderClients();
+
+    renderAppointments();
+
+    renderDeals();
+
+    renderAgents();
+
+    renderTasks();
+
+    renderFavorites();
+
+    renderCompare();
+
+    renderReports();
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+loadTheme();
+
+loadSettings();
+
+renderAll();
+
+calculateEMI();
+
+calculateCommission();
+
+
+/* =========================================================
+   START AUTH AFTER DOM LOAD
+========================================================= */
+window.addEventListener("DOMContentLoaded",()=>{
+    initLanguage();
+    initAuthentication();
+    setAuthMode("login");
+});
+
 </script>
 
 </body>
