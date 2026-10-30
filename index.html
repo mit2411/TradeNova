@@ -586,15 +586,22 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
   }
 
   /* ----------------------------- config ----------------------------- */
+  /* === GOOGLE CLIENT ID PRE-INSERTED === */
+  const DEFAULT_GOOGLE_CLIENT_ID = '553159198298-gto7uf6to1htqclfnl5oakhbfnt2ubd1.apps.googleusercontent.com';
   const CFG_KEY = 'tradeorbit_cfg_v3';
   const CFG = loadCfg();
 
   function loadCfg() {
-    try { return JSON.parse(localStorage.getItem(CFG_KEY)) || {}; }
-    catch (e) { return {}; }
+    try {
+      const d = JSON.parse(localStorage.getItem(CFG_KEY)) || {};
+      if (!d.googleClientId) d.googleClientId = DEFAULT_GOOGLE_CLIENT_ID;
+      return d;
+    } catch (e) {
+      return { googleClientId: DEFAULT_GOOGLE_CLIENT_ID };
+    }
   }
   function saveCfg() {
-    localStorage.setItem(CFG_KEY, JSON.stringify(CFG));
+    try { localStorage.setItem(CFG_KEY, JSON.stringify(CFG)); } catch (e) {}
   }
 
   /* ----------------------------- universe ----------------------------- */
@@ -1448,6 +1455,7 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
   /* =====================================================================
      GOOGLE LOGIN
      ===================================================================== */
+  let googleInitTries = 0;
   function initGoogleLogin() {
     const clientId = (CFG.googleClientId || '').trim();
     const fallback = $('#loginFallback');
@@ -1457,8 +1465,9 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
       return;
     }
 
-    if (typeof google === 'undefined' || !google.accounts) {
-      setTimeout(initGoogleLogin, 300);
+    if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+      if (googleInitTries++ < 40) setTimeout(initGoogleLogin, 300);
+      else if (fallback) fallback.classList.remove('hidden');
       return;
     }
 
@@ -1469,10 +1478,14 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
         auto_select: false,
         cancel_on_tap_outside: true
       });
-      google.accounts.id.renderButton(
-        document.getElementById('googleBtn'),
-        { theme: 'filled_black', size: 'large', width: '300', text: 'signin_with', shape: 'rectangular' }
-      );
+      const btn = document.getElementById('googleBtn');
+      if (btn) {
+        btn.innerHTML = '';
+        google.accounts.id.renderButton(
+          btn,
+          { theme: 'filled_black', size: 'large', width: 300, text: 'signin_with', shape: 'rectangular' }
+        );
+      }
       if (fallback) fallback.classList.add('hidden');
     } catch (e) {
       console.error('Google init error:', e);
@@ -1495,6 +1508,7 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
     currentUserName = user.name || 'Trader';
     loadAccount();
     $('#loginScreen').classList.add('hidden');
+    $('#setupScreen').classList.add('hidden');
     $('#app').classList.remove('hidden');
     const av = $('#avatar');
     if (user.picture) av.innerHTML = '<img src="' + user.picture + '" alt="" />';
@@ -1536,6 +1550,7 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
       currentUserEmail = null; currentUserName = null;
       $('#app').classList.add('hidden');
       $('#loginScreen').classList.remove('hidden');
+      setTimeout(initGoogleLogin, 100);
     });
 
     /* nav */
@@ -1635,9 +1650,9 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
       toast('Client ID saved — reload page to apply');
     });
     $('#clearClientId').addEventListener('click', () => {
-      delete CFG.googleClientId; saveCfg();
-      $('#cfgClientId').value = '';
-      toast('Client ID cleared');
+      CFG.googleClientId = DEFAULT_GOOGLE_CLIENT_ID; saveCfg();
+      $('#cfgClientId').value = DEFAULT_GOOGLE_CLIENT_ID;
+      toast('Reset to default Client ID');
     });
 
     $('#saveBackendUrl').addEventListener('click', () => {
@@ -1684,15 +1699,10 @@ tbody tr:hover{background:rgba(255,255,255,.018)}
     wireEvents();
     startClock();
 
-    /* decide first screen */
-    if (CFG.googleClientId) {
-      $('#setupScreen').classList.add('hidden');
-      $('#loginScreen').classList.remove('hidden');
-      setTimeout(initGoogleLogin, 200);
-    } else {
-      $('#setupScreen').classList.remove('hidden');
-      $('#loginScreen').classList.add('hidden');
-    }
+    /* Google Client ID अब default में सेट है — सीधे login screen दिखाएं */
+    $('#setupScreen').classList.add('hidden');
+    $('#loginScreen').classList.remove('hidden');
+    setTimeout(initGoogleLogin, 200);
 
     /* backend auto-test */
     if (CFG.backendUrl) setTimeout(testBackend, 800);
